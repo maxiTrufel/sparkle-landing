@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Sparkle V2 — Copiloto cognitivo para clases en Google Meet</title>
-<meta name="description" content="Proyecto final de Ingeniería en Sistemas. Extensión de Chrome que detecta desatención en clases por videollamada y genera preguntas y resúmenes con IA.">
+<meta name="description" content="Proyecto final de Ingeniería en Informática. Extensión de Chrome que detecta desatención en clases por videollamada y genera preguntas y resúmenes con IA.">
 <style>
   :root{
     --tinta:#0f1d33; --suave:#41506b; --tenue:#6b7a94;
@@ -75,7 +75,7 @@
 
   <section>
     <h2>Qué es</h2>
-    <p>Sparkle V2 es una extensión de Chrome que funciona dentro de Google Meet. Fue desarrollada como <strong>proyecto final de la carrera de Ingeniería en Sistemas</strong> y no es un producto comercial.</p>
+    <p>Sparkle V2 es una extensión de Chrome que funciona dentro de Google Meet. Fue desarrollada como <strong>proyecto final de la carrera de Ingeniería en Informática</strong> y no es un producto comercial.</p>
     <p>Durante la clase, la extensión estima el nivel de atención de cada estudiante a partir de la imagen de su cámara. Cuando la atención baja, el estudiante recibe un aviso privado y puede pedir un resumen del tramo que se perdió. El docente ve el estado del curso, genera preguntas de comprensión desde el material que subió y obtiene un reporte al finalizar.</p>
   </section>
 
@@ -94,21 +94,33 @@
     </div>
 
     <div class="tarjeta">
+      <h3>Transcripción de la clase</h3>
+      <p>Cuando el docente se conecta a Sparkle, un bot llamado <strong>Sparkle Bot</strong> se suma a la reunión de Google Meet y transcribe lo que se dice durante la clase. La transcripción se utiliza para generar las preguntas, los resúmenes y el reporte de la clase.</p>
+    </div>
+
+    <div class="tarjeta">
       <h3>Qué datos se guardan</h3>
       <ul>
-        <li>La dirección de correo con la que entrás a la reunión, para distinguir docente de estudiante.</li>
-        <li>El código de la reunión de Google Meet.</li>
-        <li>Los indicadores de atención durante la clase, sin imágenes.</li>
-        <li>Las respuestas a las preguntas de comprensión.</li>
+        <li>La dirección de correo de la cuenta de Google con la que entrás a la reunión, que la extensión lee de la página de Meet, para distinguir docente de estudiante.</li>
+        <li>El nombre que ingresa cada estudiante al sumarse a la clase, que el docente ve para identificarlo.</li>
+        <li>El código de la reunión de Google Meet y los horarios de conexión y desconexión de cada participante.</li>
+        <li>Las respuestas a las preguntas de comprensión: la opción elegida, si fue correcta y el tiempo de respuesta.</li>
+        <li>Indicadores de atención agregados del curso, sin imágenes. El indicador individual de cada estudiante se usa durante la clase y no se guarda.</li>
         <li>Los documentos que sube el docente como material de la clase.</li>
-        <li>La transcripción de la clase, cuando la funcionalidad está activada.</li>
+        <li>La transcripción de la clase, con el nombre visible en Meet de quien habla.</li>
       </ul>
     </div>
 
     <div class="tarjeta">
       <h3>Con quién se comparte</h3>
-      <p>Con nadie. Los datos se guardan en un servidor propio del proyecto y <strong>no se venden, ceden ni transfieren a terceros</strong>.</p>
-      <p>Para generar preguntas y resúmenes se envía el texto del material y de la transcripción a la API de OpenAI. No se le envían datos personales de los estudiantes ni imágenes.</p>
+      <p>Los datos se guardan en servidores del proyecto alojados en Amazon Web Services (región São Paulo, Brasil) y <strong>no se venden ni se ceden a terceros</strong>.</p>
+      <p>Para generar preguntas, resúmenes y el reporte de la clase, el servidor envía a la API de OpenAI (Estados Unidos) el texto del material y de la transcripción, que incluye el nombre visible de quien habla. El reporte del docente incluye además el nombre de cada estudiante junto con su resultado en cada pregunta. <strong>Nunca se envían imágenes, video ni los indicadores de atención.</strong></p>
+      <p>OpenAI procesa estos datos únicamente como proveedor del servicio y, según sus políticas, no utiliza los datos recibidos por su API para entrenar sus modelos.</p>
+    </div>
+
+    <div class="tarjeta">
+      <h3>Cuánto tiempo se conservan</h3>
+      <p>Los datos de cada clase se conservan hasta que se solicite su eliminación. Las copias de seguridad se almacenan cifradas y se eliminan automáticamente a los 30 días.</p>
     </div>
 
     <div class="tarjeta">
@@ -132,7 +144,7 @@
 </main>
 
 <footer class="envoltura">
-  Sparkle V2 · Proyecto final de Ingeniería en Sistemas · 2026
+  Sparkle V2 · Proyecto final de Ingeniería en Informática · 2026
 </footer>
 
 </body>
