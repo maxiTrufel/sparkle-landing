@@ -5,146 +5,413 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Sparkle V2 — Copiloto cognitivo para clases en Google Meet</title>
 <meta name="description" content="Proyecto final de Ingeniería en Informática. Extensión de Chrome que detecta desatención en clases por videollamada y genera preguntas y resúmenes con IA.">
+<meta name="theme-color" content="#0076F0">
+<link rel="icon" type="image/png" href="assets/favicon.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
-    --tinta:#0f1d33; --suave:#41506b; --tenue:#6b7a94;
-    --azul:#0b57d0; --linea:#e2e8f4; --fondo:#f7f9fd; --papel:#fff;
+    --marca:#0076F0; --marca-fuerte:#0058C4; --marca-suave:#E8F2FE;
+    --tinta:#0B1526; --texto:#44536B; --tenue:#6B7A92;
+    --fondo:#FFFFFF; --superficie:#F6F9FD; --tarjeta:#FFFFFF; --linea:#E3EAF4;
+    --verde:#12A150; --verde-suave:#E7F7EE; --rojo:#D93838;
+    --sombra:0 1px 2px rgba(11,21,38,.04), 0 8px 24px rgba(11,21,38,.06);
+    --radio:20px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --marca:#3D97FF; --marca-fuerte:#7AB6FF; --marca-suave:#10233F;
+      --tinta:#EAF0F8; --texto:#A9B6CA; --tenue:#7E8CA3;
+      --fondo:#070C16; --superficie:#0C1321; --tarjeta:#0F1828; --linea:#1D293D;
+      --verde:#3DD68C; --verde-suave:#0E2A1E; --rojo:#FF6B6B;
+      --sombra:0 1px 2px rgba(0,0,0,.3), 0 10px 30px rgba(0,0,0,.35);
+    }
+    .marca-texto{filter:invert(1)}
   }
   *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
   body{
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-    background:var(--fondo); color:var(--tinta); line-height:1.6;
-    -webkit-font-smoothing:antialiased;
+    font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    background:var(--fondo); color:var(--texto); line-height:1.65; font-size:16.5px;
+    -webkit-font-smoothing:antialiased; overflow-x:hidden;
   }
-  .envoltura{max-width:760px;margin:0 auto;padding:0 24px}
+  a{color:inherit;text-decoration:none}
+  .contenedor{max-width:1120px;margin:0 auto;padding:0 24px}
+  h1,h2,h3{color:var(--tinta);letter-spacing:-.02em;line-height:1.15}
+  strong{color:var(--tinta);font-weight:600}
 
-  header{
-    background:linear-gradient(135deg,#0b57d0 0%,#2b6ff0 45%,#5b47e0 100%);
-    color:#fff; padding:72px 0 64px;
+  /* ---------- navegación ---------- */
+  nav{
+    position:sticky;top:0;z-index:10;
+    background:color-mix(in srgb,var(--fondo) 78%,transparent);
+    backdrop-filter:saturate(180%) blur(14px);-webkit-backdrop-filter:saturate(180%) blur(14px);
+    border-bottom:1px solid color-mix(in srgb,var(--linea) 70%,transparent);
   }
-  .logo{
-    width:64px;height:64px;border-radius:16px;background:rgba(255,255,255,.16);
-    display:flex;align-items:center;justify-content:center;margin-bottom:26px;
-    border:1px solid rgba(255,255,255,.25);
+  nav .contenedor{display:flex;align-items:center;justify-content:space-between;height:68px}
+  .marca{display:flex;align-items:center;gap:10px}
+  .marca img.icono{width:34px;height:34px}
+  .marca img.marca-texto{height:24px;width:auto}
+  .marca .version{
+    font-size:12px;font-weight:700;color:var(--marca);background:var(--marca-suave);
+    padding:3px 8px;border-radius:999px;margin-left:2px
   }
-  .logo svg{width:34px;height:34px;fill:#fff}
-  header h1{font-size:40px;line-height:1.15;letter-spacing:-1px;margin-bottom:14px;font-weight:700}
-  header p{font-size:19px;color:rgba(255,255,255,.9);max-width:560px}
+  nav ul{display:flex;gap:6px;list-style:none}
+  nav ul a{font-size:14.5px;font-weight:500;color:var(--texto);padding:8px 14px;border-radius:10px;transition:background .2s,color .2s}
+  nav ul a:hover{background:var(--superficie);color:var(--tinta)}
+
+  /* ---------- hero ---------- */
+  .hero{position:relative;padding:88px 0 96px;overflow:hidden}
+  .hero::before,.hero::after{
+    content:"";position:absolute;border-radius:50%;filter:blur(80px);opacity:.55;z-index:-1
+  }
+  .hero::before{width:520px;height:520px;background:#5AA9FF;top:-180px;right:-120px;opacity:.35}
+  .hero::after{width:420px;height:420px;background:#8B7CFF;bottom:-220px;left:-160px;opacity:.22}
+  .hero .contenedor{display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:center}
   .etiqueta{
-    display:inline-block;font-size:12px;font-weight:700;letter-spacing:1.5px;
-    text-transform:uppercase;color:rgba(255,255,255,.75);margin-bottom:18px;
+    display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--marca);
+    background:var(--marca-suave);border:1px solid color-mix(in srgb,var(--marca) 22%,transparent);
+    padding:6px 12px;border-radius:999px;margin-bottom:22px
   }
+  .etiqueta .punto{width:7px;height:7px;border-radius:50%;background:var(--marca)}
+  .hero h1{font-size:clamp(38px,5.4vw,60px);font-weight:800;letter-spacing:-.035em;margin-bottom:20px}
+  .hero h1 .degradado{
+    background:linear-gradient(100deg,var(--marca) 0%,#6A5CFF 100%);
+    -webkit-background-clip:text;background-clip:text;color:transparent
+  }
+  .hero p.bajada{font-size:19px;max-width:540px;margin-bottom:32px}
+  .botones{display:flex;flex-wrap:wrap;gap:12px}
+  .boton{
+    display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:15px;
+    padding:13px 20px;border-radius:12px;transition:transform .15s,box-shadow .2s,background .2s
+  }
+  .boton.primario{background:var(--marca);color:#fff;box-shadow:0 6px 20px color-mix(in srgb,var(--marca) 35%,transparent)}
+  .boton.primario:hover{transform:translateY(-1px);box-shadow:0 10px 26px color-mix(in srgb,var(--marca) 45%,transparent)}
+  .boton.secundario{background:var(--tarjeta);color:var(--tinta);border:1px solid var(--linea)}
+  .boton.secundario:hover{background:var(--superficie)}
+  .boton svg{width:18px;height:18px}
 
-  main{padding:56px 0 80px}
-  section{margin-bottom:44px}
-  h2{font-size:23px;letter-spacing:-.4px;margin-bottom:14px;font-weight:700}
-  h3{font-size:16px;margin:22px 0 8px;font-weight:700}
-  p{color:var(--suave);margin-bottom:12px}
-  ul{color:var(--suave);padding-left:22px;margin-bottom:12px}
-  li{margin-bottom:7px}
-  strong{color:var(--tinta)}
+  /* diagrama del flujo de privacidad */
+  .flujo{
+    background:var(--tarjeta);border:1px solid var(--linea);border-radius:26px;padding:28px;
+    box-shadow:var(--sombra);position:relative
+  }
+  .flujo-titulo{font-size:13px;font-weight:600;color:var(--tenue);text-transform:uppercase;letter-spacing:.08em;margin-bottom:18px}
+  .dispositivo{
+    border:1.5px dashed color-mix(in srgb,var(--marca) 45%,transparent);border-radius:18px;padding:18px;
+    background:color-mix(in srgb,var(--marca-suave) 55%,transparent)
+  }
+  .dispositivo-rotulo{font-size:12.5px;font-weight:700;color:var(--marca);margin-bottom:12px;display:flex;align-items:center;gap:6px}
+  .dispositivo-rotulo svg{width:15px;height:15px}
+  .paso{
+    display:flex;align-items:center;gap:14px;background:var(--tarjeta);border:1px solid var(--linea);
+    border-radius:14px;padding:13px 15px
+  }
+  .paso + .flecha + .paso{margin-top:0}
+  .paso .ic{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;flex-shrink:0;background:var(--marca-suave);color:var(--marca)}
+  .paso .ic svg{width:20px;height:20px}
+  .paso b{display:block;color:var(--tinta);font-size:15px;font-weight:600}
+  .paso span{font-size:13.5px;color:var(--tenue)}
+  .flecha{display:flex;justify-content:center;padding:6px 0;color:var(--tenue)}
+  .flecha svg{width:18px;height:18px}
+  .paso.servidor .ic{background:var(--verde-suave);color:var(--verde)}
+  .bloqueo{
+    display:flex;align-items:center;gap:8px;margin-top:16px;font-size:13.5px;font-weight:600;color:var(--rojo);
+    background:color-mix(in srgb,var(--rojo) 9%,transparent);border-radius:12px;padding:10px 13px
+  }
+  .bloqueo svg{width:17px;height:17px;flex-shrink:0}
+
+  /* ---------- secciones ---------- */
+  section{padding:88px 0}
+  section.gris{background:var(--superficie);border-top:1px solid var(--linea);border-bottom:1px solid var(--linea)}
+  .encabezado{max-width:680px;margin-bottom:44px}
+  .sobretitulo{font-size:13px;font-weight:700;color:var(--marca);text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px}
+  .encabezado h2{font-size:clamp(30px,3.6vw,40px);font-weight:800;margin-bottom:14px}
+  .encabezado p{font-size:17.5px}
+
+  .grilla{display:grid;gap:20px}
+  .g4{grid-template-columns:repeat(4,1fr)}
+  .g2{grid-template-columns:repeat(2,1fr)}
+  .g3{grid-template-columns:repeat(3,1fr)}
 
   .tarjeta{
-    background:var(--papel);border:1px solid var(--linea);border-radius:14px;
-    padding:26px 28px;margin-bottom:18px;
+    background:var(--tarjeta);border:1px solid var(--linea);border-radius:var(--radio);padding:26px;
+    box-shadow:var(--sombra);transition:transform .2s,border-color .2s
   }
-  .destacado{border-left:3px solid var(--azul)}
+  .tarjeta:hover{transform:translateY(-2px);border-color:color-mix(in srgb,var(--marca) 30%,var(--linea))}
+  .tarjeta .ic{
+    width:44px;height:44px;border-radius:13px;display:grid;place-items:center;margin-bottom:18px;
+    background:var(--marca-suave);color:var(--marca)
+  }
+  .tarjeta .ic svg{width:22px;height:22px}
+  .tarjeta h3{font-size:18px;font-weight:700;margin-bottom:8px}
+  .tarjeta p{font-size:15.5px}
+  .tarjeta p + p{margin-top:10px}
 
-  footer{
-    border-top:1px solid var(--linea);padding:28px 0 44px;
-    color:var(--tenue);font-size:14px;
+  .aviso{
+    margin-top:28px;display:flex;gap:16px;align-items:flex-start;border-radius:var(--radio);padding:22px 24px;
+    background:var(--tarjeta);border:1px solid var(--linea)
   }
-  a{color:var(--azul)}
-  @media (max-width:600px){ header h1{font-size:31px} header{padding:52px 0 46px} }
+  .aviso .ic{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;flex-shrink:0;background:var(--marca-suave);color:var(--marca)}
+  .aviso .ic svg{width:20px;height:20px}
+  .aviso h3{font-size:16.5px;margin-bottom:4px}
+  .aviso p{font-size:15.5px}
+
+  /* privacidad */
+  .destacada{
+    position:relative;border-radius:26px;padding:40px;margin-bottom:20px;overflow:hidden;color:#fff;
+    background:linear-gradient(125deg,#0076F0 0%,#2F6BF5 45%,#6A5CFF 100%);
+    box-shadow:0 18px 50px color-mix(in srgb,#0076F0 30%,transparent)
+  }
+  .destacada::after{
+    content:"";position:absolute;width:340px;height:340px;border-radius:50%;right:-90px;top:-120px;
+    background:radial-gradient(circle,rgba(255,255,255,.22),transparent 65%)
+  }
+  .destacada .ic{
+    width:52px;height:52px;border-radius:15px;display:grid;place-items:center;margin-bottom:20px;
+    background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.25)
+  }
+  .destacada .ic svg{width:26px;height:26px}
+  .destacada h3{color:#fff;font-size:clamp(24px,3vw,30px);font-weight:800;margin-bottom:12px;max-width:640px}
+  .destacada p{color:rgba(255,255,255,.9);font-size:17px;max-width:720px;position:relative;z-index:1}
+  .destacada p + p{margin-top:10px}
+  .destacada strong{color:#fff}
+
+  .lista{list-style:none;display:grid;gap:12px;margin-top:6px}
+  .lista li{display:flex;gap:12px;align-items:flex-start;font-size:15.5px}
+  .lista li svg{width:20px;height:20px;flex-shrink:0;margin-top:2px;color:var(--marca)}
+  .datos,.ancho{grid-column:1 / -1}
+  .ancho .columnas{columns:2;column-gap:40px}
+  .ancho .columnas p{break-inside:avoid;margin-bottom:10px}
+  .ancho .columnas p + p{margin-top:0}
+  .datos .lista{grid-template-columns:1fr 1fr;column-gap:32px}
+
+  .permisos{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .permiso{
+    background:var(--tarjeta);border:1px solid var(--linea);border-radius:16px;padding:18px 20px
+  }
+  .permiso code{
+    display:inline-block;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;font-weight:600;
+    color:var(--marca);background:var(--marca-suave);padding:3px 9px;border-radius:8px;margin-bottom:10px
+  }
+  .permiso p{font-size:14.5px}
+
+  /* ---------- pie ---------- */
+  footer{padding:44px 0 56px;border-top:1px solid var(--linea)}
+  footer .contenedor{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
+  footer p{font-size:14px;color:var(--tenue)}
+
+  @media (max-width:960px){
+    .hero .contenedor{grid-template-columns:1fr;gap:44px}
+    .g4{grid-template-columns:repeat(2,1fr)}
+    .permisos{grid-template-columns:repeat(2,1fr)}
+  }
+  @media (max-width:640px){
+    body{font-size:16px}
+    nav ul{display:none}
+    .hero{padding:56px 0 64px}
+    section{padding:64px 0}
+    .g4,.g2,.g3,.permisos,.datos .lista{grid-template-columns:1fr}
+    .ancho .columnas{columns:1}
+    .destacada{padding:28px}
+    .flujo{padding:20px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto}
+    *{transition:none!important}
+  }
 </style>
 </head>
 <body>
 
-<header>
-  <div class="envoltura">
-    <div class="logo">
-      <svg viewBox="0 0 24 24"><path d="M12 3 1 9l11 6 9-4.91V17h2V9L12 3zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z"/></svg>
+<nav>
+  <div class="contenedor">
+    <a class="marca" href="#" aria-label="Sparkle V2">
+      <img class="icono" src="assets/sparkle-icon.png" alt="">
+      <img class="marca-texto" src="assets/sparkle-wordmark.png" alt="Sparkle">
+      <span class="version">V2</span>
+    </a>
+    <ul>
+      <li><a href="#que-es">Qué es</a></li>
+      <li><a href="#privacidad">Privacidad</a></li>
+      <li><a href="#permisos">Permisos</a></li>
+    </ul>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="contenedor">
+    <div>
+      <div class="etiqueta"><span class="punto"></span>Proyecto Final de Ingeniería · 2026</div>
+      <h1>Un copiloto cognitivo para clases por <span class="degradado">videollamada</span></h1>
+      <p class="bajada">Detecta la desatención en tiempo real y genera preguntas y resúmenes a partir del material de la clase, directamente dentro de Google Meet.</p>
+      <div class="botones">
+        <a class="boton primario" href="#privacidad">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Política de privacidad
+        </a>
+        <a class="boton secundario" href="#que-es">Cómo funciona</a>
+      </div>
     </div>
-    <div class="etiqueta">Proyecto Final de Ingeniería · 2026</div>
-    <h1>Sparkle V2</h1>
-    <p>Un copiloto cognitivo para clases por videollamada: detecta la desatención en tiempo real y genera preguntas y resúmenes a partir del material de la clase.</p>
+
+    <div class="flujo" aria-label="Cómo se procesa la cámara">
+      <div class="flujo-titulo">Cómo se procesa la cámara</div>
+      <div class="dispositivo">
+        <div class="dispositivo-rotulo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+          Dispositivo del estudiante
+        </div>
+        <div class="paso">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></div>
+          <div><b>Cámara</b><span>La imagen se procesa en memoria</span></div>
+        </div>
+        <div class="flecha"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg></div>
+        <div class="paso">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 14h3M1 9h3M1 14h3"/></svg></div>
+          <div><b>Modelo en el navegador</b><span>Estima el nivel de atención</span></div>
+        </div>
+      </div>
+      <div class="flecha"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg></div>
+      <div class="paso servidor">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="7" rx="2"/><rect x="2" y="14" width="20" height="7" rx="2"/><path d="M6 6.5h.01M6 17.5h.01"/></svg></div>
+        <div><b>Servidor</b><span>Solo recibe un indicador numérico</span></div>
+      </div>
+      <div class="bloqueo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M4.9 4.9l14.2 14.2"/></svg>
+        Ninguna imagen ni video sale del equipo
+      </div>
+    </div>
   </div>
 </header>
 
-<main class="envoltura">
+<section id="que-es" class="gris">
+  <div class="contenedor">
+    <div class="encabezado">
+      <div class="sobretitulo">Qué es</div>
+      <h2>Una extensión de Chrome que funciona dentro de Google Meet</h2>
+      <p>Sparkle V2 fue desarrollada como <strong>proyecto final de la carrera de Ingeniería en Informática</strong> y no es un producto comercial.</p>
+    </div>
 
-  <section>
-    <h2>Qué es</h2>
-    <p>Sparkle V2 es una extensión de Chrome que funciona dentro de Google Meet. Fue desarrollada como <strong>proyecto final de la carrera de Ingeniería en Informática</strong> y no es un producto comercial.</p>
-    <p>Durante la clase, la extensión estima el nivel de atención de cada estudiante a partir de la imagen de su cámara. Cuando la atención baja, el estudiante recibe un aviso privado y puede pedir un resumen del tramo que se perdió. El docente ve el estado del curso, genera preguntas de comprensión desde el material que subió y obtiene un reporte al finalizar.</p>
-  </section>
+    <div class="grilla g4">
+      <div class="tarjeta">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div>
+        <h3>Atención en tiempo real</h3>
+        <p>Durante la clase, la extensión estima el nivel de atención de cada estudiante a partir de la imagen de su cámara.</p>
+      </div>
+      <div class="tarjeta">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div>
+        <h3>Aviso y resumen</h3>
+        <p>Cuando la atención baja, el estudiante recibe un aviso privado y puede pedir un resumen del tramo que se perdió.</p>
+      </div>
+      <div class="tarjeta">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01"/></svg></div>
+        <h3>Preguntas desde el material</h3>
+        <p>El docente ve el estado del curso y genera preguntas de comprensión desde el material que subió.</p>
+      </div>
+      <div class="tarjeta">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10M12 20V4M6 20v-6"/></svg></div>
+        <h3>Reporte de la clase</h3>
+        <p>Al finalizar, el docente obtiene un reporte con lo ocurrido durante la clase.</p>
+      </div>
+    </div>
 
-  <section>
-    <h2>Disponibilidad</h2>
-    <p>La extensión se distribuye de forma <strong>no listada</strong> en la Chrome Web Store y requiere un servidor propio. No está pensada para uso general: se usa en las pruebas académicas del proyecto.</p>
-  </section>
+    <div class="aviso">
+      <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg></div>
+      <div>
+        <h3>Disponibilidad</h3>
+        <p>La extensión se distribuye de forma <strong>no listada</strong> en la Chrome Web Store y requiere un servidor propio. No está pensada para uso general: se usa en las pruebas académicas del proyecto.</p>
+      </div>
+    </div>
+  </div>
+</section>
 
-  <section id="privacidad">
-    <h2>Política de privacidad</h2>
+<section id="privacidad">
+  <div class="contenedor">
+    <div class="encabezado">
+      <div class="sobretitulo">Política de privacidad</div>
+      <h2>Qué datos usa Sparkle y qué hace con ellos</h2>
+    </div>
 
-    <div class="tarjeta destacado">
+    <div class="destacada">
+      <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
       <h3>El video de la cámara nunca sale de tu computadora</h3>
       <p>El análisis de atención corre <strong>íntegramente en el dispositivo del estudiante</strong>, con modelos que se ejecutan dentro del navegador. Las imágenes de la cámara no se envían, no se almacenan y no salen del equipo en ningún momento.</p>
       <p>Lo único que viaja al servidor es un <strong>indicador numérico</strong> de si la persona estaba atenta, sin ninguna imagen asociada.</p>
     </div>
 
-    <div class="tarjeta">
-      <h3>Transcripción de la clase</h3>
-      <p>Cuando el docente se conecta a Sparkle, un bot llamado <strong>Sparkle Bot</strong> se suma a la reunión de Google Meet y transcribe lo que se dice durante la clase. La transcripción se utiliza para generar las preguntas, los resúmenes y el reporte de la clase.</p>
+    <div class="grilla g2">
+      <div class="tarjeta">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8"/></svg></div>
+        <h3>Transcripción de la clase</h3>
+        <p>Cuando el docente se conecta a Sparkle, un bot llamado <strong>Sparkle Bot</strong> se suma a la reunión de Google Meet y transcribe lo que se dice durante la clase. La transcripción se utiliza para generar las preguntas, los resúmenes y el reporte de la clase.</p>
+      </div>
+      <div class="tarjeta">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+        <h3>Cuánto tiempo se conservan</h3>
+        <p>Los datos de cada clase se conservan hasta que se solicite su eliminación. Las copias de seguridad se almacenan cifradas y se eliminan automáticamente a los 30 días.</p>
+      </div>
+
+      <div class="tarjeta datos">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg></div>
+        <h3>Qué datos se guardan</h3>
+        <ul class="lista">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg><span>La dirección de correo de la cuenta de Google con la que entrás a la reunión, que la extensión lee de la página de Meet, para distinguir docente de estudiante.</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg><span>El nombre que ingresa cada estudiante al sumarse a la clase, que el docente ve para identificarlo.</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg><span>El código de la reunión de Google Meet y los horarios de conexión y desconexión de cada participante.</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg><span>Las respuestas a las preguntas de comprensión: la opción elegida, si fue correcta y el tiempo de respuesta.</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg><span>Indicadores de atención agregados del curso, sin imágenes. El indicador individual de cada estudiante se usa durante la clase y no se guarda.</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg><span>Los documentos que sube el docente como material de la clase.</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg><span>La transcripción de la clase, con el nombre visible en Meet de quien habla.</span></li>
+        </ul>
+      </div>
+
+      <div class="tarjeta ancho">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98"/></svg></div>
+        <h3>Con quién se comparte</h3>
+        <div class="columnas">
+          <p>Los datos se guardan en servidores del proyecto alojados en Amazon Web Services (región São Paulo, Brasil) y <strong>no se venden ni se ceden a terceros</strong>.</p>
+          <p>Para generar preguntas, resúmenes y el reporte de la clase, el servidor envía a la API de OpenAI (Estados Unidos) el texto del material y de la transcripción, que incluye el nombre visible de quien habla. El reporte del docente incluye además el nombre de cada estudiante junto con su resultado en cada pregunta. <strong>Nunca se envían imágenes, video ni los indicadores de atención.</strong></p>
+          <p>OpenAI procesa estos datos únicamente como proveedor del servicio y, según sus políticas, no utiliza los datos recibidos por su API para entrenar sus modelos.</p>
+        </div>
+      </div>
     </div>
 
-    <div class="tarjeta">
-      <h3>Qué datos se guardan</h3>
-      <ul>
-        <li>La dirección de correo de la cuenta de Google con la que entrás a la reunión, que la extensión lee de la página de Meet, para distinguir docente de estudiante.</li>
-        <li>El nombre que ingresa cada estudiante al sumarse a la clase, que el docente ve para identificarlo.</li>
-        <li>El código de la reunión de Google Meet y los horarios de conexión y desconexión de cada participante.</li>
-        <li>Las respuestas a las preguntas de comprensión: la opción elegida, si fue correcta y el tiempo de respuesta.</li>
-        <li>Indicadores de atención agregados del curso, sin imágenes. El indicador individual de cada estudiante se usa durante la clase y no se guarda.</li>
-        <li>Los documentos que sube el docente como material de la clase.</li>
-        <li>La transcripción de la clase, con el nombre visible en Meet de quien habla.</li>
-      </ul>
+    <div class="aviso">
+      <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/></svg></div>
+      <div>
+        <h3>Baja de datos</h3>
+        <p>Para pedir la eliminación de los datos de una clase, escribir a los responsables del proyecto por los canales de la cátedra.</p>
+      </div>
     </div>
+  </div>
+</section>
 
-    <div class="tarjeta">
-      <h3>Con quién se comparte</h3>
-      <p>Los datos se guardan en servidores del proyecto alojados en Amazon Web Services (región São Paulo, Brasil) y <strong>no se venden ni se ceden a terceros</strong>.</p>
-      <p>Para generar preguntas, resúmenes y el reporte de la clase, el servidor envía a la API de OpenAI (Estados Unidos) el texto del material y de la transcripción, que incluye el nombre visible de quien habla. El reporte del docente incluye además el nombre de cada estudiante junto con su resultado en cada pregunta. <strong>Nunca se envían imágenes, video ni los indicadores de atención.</strong></p>
-      <p>OpenAI procesa estos datos únicamente como proveedor del servicio y, según sus políticas, no utiliza los datos recibidos por su API para entrenar sus modelos.</p>
+<section id="permisos" class="gris">
+  <div class="contenedor">
+    <div class="encabezado">
+      <div class="sobretitulo">Permisos</div>
+      <h2>Permisos que pide la extensión</h2>
     </div>
-
-    <div class="tarjeta">
-      <h3>Cuánto tiempo se conservan</h3>
-      <p>Los datos de cada clase se conservan hasta que se solicite su eliminación. Las copias de seguridad se almacenan cifradas y se eliminan automáticamente a los 30 días.</p>
+    <div class="permisos">
+      <div class="permiso"><code>Cámara</code><p>Para estimar la atención en el dispositivo. Se puede desactivar en cualquier momento desde el panel.</p></div>
+      <div class="permiso"><code>storage</code><p>Para recordar la dirección del servidor y las preferencias.</p></div>
+      <div class="permiso"><code>alarms</code><p>Para los ciclos periódicos de análisis.</p></div>
+      <div class="permiso"><code>offscreen</code><p>Para procesar el video fuera de la pantalla visible.</p></div>
+      <div class="permiso"><code>meet.google.com</code><p>Para mostrar el panel dentro de la reunión.</p></div>
+      <div class="permiso"><code>api.sparkleedu.me</code><p>Para comunicarse con el servidor del proyecto.</p></div>
     </div>
+  </div>
+</section>
 
-    <div class="tarjeta">
-      <h3>Permisos que pide la extensión</h3>
-      <ul>
-        <li><strong>Cámara:</strong> para estimar la atención en el dispositivo. Se puede desactivar en cualquier momento desde el panel.</li>
-        <li><strong>storage:</strong> para recordar la dirección del servidor y las preferencias.</li>
-        <li><strong>alarms:</strong> para los ciclos periódicos de análisis.</li>
-        <li><strong>offscreen:</strong> para procesar el video fuera de la pantalla visible.</li>
-        <li><strong>Acceso a meet.google.com:</strong> para mostrar el panel dentro de la reunión.</li>
-        <li><strong>Acceso a api.sparkleedu.me:</strong> para comunicarse con el servidor del proyecto.</li>
-      </ul>
-    </div>
-
-    <div class="tarjeta">
-      <h3>Baja de datos</h3>
-      <p>Para pedir la eliminación de los datos de una clase, escribir a los responsables del proyecto por los canales de la cátedra.</p>
-    </div>
-  </section>
-
-</main>
-
-<footer class="envoltura">
-  Sparkle V2 · Proyecto final de Ingeniería en Informática · 2026
+<footer>
+  <div class="contenedor">
+    <a class="marca" href="#" aria-label="Sparkle V2">
+      <img class="icono" src="assets/sparkle-icon.png" alt="">
+      <img class="marca-texto" src="assets/sparkle-wordmark.png" alt="Sparkle">
+    </a>
+    <p>Sparkle V2 · Proyecto final de Ingeniería en Informática · 2026</p>
+  </div>
 </footer>
 
 </body>
